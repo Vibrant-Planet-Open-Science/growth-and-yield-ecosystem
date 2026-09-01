@@ -1,14 +1,14 @@
 # Open Source Ecosystem for Forest Growth & Yield
-*This is a snapshot of an emergent ecosystem with loosely-connected components. And an open invitation to coordinate across it.*
-Last updated August 27, 2026.
+*This is a snapshot of an emergent ecosystem with loosely-connected components. And an open invitation to coordinate across it.*  
+Last updated September 1, 2026.
 
 ## Overview
 
-The United States has an enviable base of forest data and modeling infrastructure. The Forest Inventory & Analysis (FIA) program produces the most comprehensive national forest inventory in the world. Growth-and-yield models built on it — the Forest Vegetation Simulator (FVS) most prominently, alongside regional and species-specific models maintained by universities and industry — are applied every year across hundreds of millions of acres. Each of these was chartered for a specific mission and has served it well.
+Forest growth-and-yield models project how forests change under alternative management and disturbance scenarios. Their outputs underwrite federal and state land management plans, community wildfire protection plans, habitat conservation plans, timberland valuation, and forest carbon projects subject to third-party verification. The chain that produces those outputs spans federal inventory data, the Forest Vegetation Simulator (FVS) and related growth engines applied across hundreds of millions of acres, and a growing layer of community-built interfaces, wrappers, and delivery services that make these tools usable beyond a Windows desktop. 
 
-What no program was ever chartered to do is steward the **connections** between them — or between them and the growing set of tools built on top, or the users who have adopted the whole chain as national infrastructure. Wildfire risk analysis, timberland valuation, treatment prioritization, carbon accounting, and remote sensing for forest monitoring all now consume growth-and-yield outputs. Most of those users were never the intended audience of any single program.
+No program was ever chartered to steward the **connections** between them — or between them and the growing set of tools built on top, or the users who have adopted the whole chain as national infrastructure. Most of these users were never the intended audience of any single program.
 
-Open-source development has begun bridging the gaps: interfaces to FIA data, remote-sensing pipelines that produce model-ready inputs, modernized growth engines and language bindings, build and validation infrastructure, web services, and downstream decision support systems. Each is a reasonable answer to a real need. Collectively, they have been uncoordinated.
+Open-source development has begun bridging the gaps between fundamental pillars established by federal investments: interfaces to FIA data, remote-sensing pipelines that produce model-ready inputs, modernized growth engines and language bindings related to FVS, build and validation infrastructure, web services, and downstream decision support systems. Each is a reasonable answer to a real need. Collectively, they have been uncoordinated.
 
 **This project is being set up to make these connections visible, documented, and easier to contribute to.**
 
@@ -29,23 +29,15 @@ This project and this leaping off point are *__not__* aspiring to make:
 
 ## How the pieces fit together
 
-```
-        FIA inventory data                  remote sensing
-                |                                 |
-     rFIA / pyFIA / forestTIME              fastfuels / TreeMap / LANDFIRE
-                \                              /
-                 +------> model inputs <------+
-                                |
-              growth-and-yield engines (FVS and others)
-                                |
-       shared infrastructure:  build - test - calibrate - validate - deliver
-                                |
-        language bindings  |  web services  |  hosted GUIs
-                                |
-     treatment planning  |  fire  |  timber  |  carbon  |  habitat  |  water
-```
+This table maps the five core software layers from federal data inputs to downstream decision support by identifying primary maintainers and critical socio-technical vulnerabilities currently destabilizing the pipeline.
 
-Read from top to bottom: **inventory and remote sensing produce model inputs → an engine projects them forward → shared infrastructure verifies that the engine builds correctly and predicts well → bindings and services deliver results → downstream tools and analyses consume them.** 
+| Ecosystem Layer | Primary Builders & Maintainers | Socio-Technical Vulnerability |
+|---|---|---| 
+| Data Foundations | Federal (USFS FIA, LANDFIRE, TreeMap), Academia and Community (e.g., rFIA, pyFIA, fastfuels) | Fragmented data pipelines; inputs scale natively but lack standardized handoffs to engines. |
+| Core Engines | Federal (FVS, NVEL), NVEL, State (ODF - pyFVS, pyNVEL), CAFS (fvs-modern) | Critical maintainer concentration (common bus factor of 1), legacy Fortran, no or limited automated testing. |	
+| Connective Middleware | Community (Vibrant Planet, Midgard Natural Resources, Independent Devs) | Duplicated efforts, unsanctioned wrappers, no shared API contracts or coordinated release schedules. |
+| Infrastructure & Provenance | Federal (Windows desktop installer, Windows binaries); Early-stage community DevOps (fvs-build) | Desktop-compiled binaries; signed releases only for Windows desktop installer; lack of SBOMs, or SLSA compliance. |
+| Decision Support | Carbon Registries, Wildfire Planners, Enterprise Forestry | Inability to prove provenance of projections for regulatory audits or litigation | 
 
 ---
 
@@ -67,11 +59,12 @@ These components produce snapshots or time-series of the state of trees and fore
 | [`LANDFIRE`](https://www.landfire.gov) | Large set of data layers on vegetation and fuels | USDA & DOI fire offices | Public Domain, code not published |
 
 
-### Growth-and-yield engines
+### Growth-and-yield engines and building blocks
 Engines are where inventory data get compiled into a suite of other derived tree-, plot-, and stand-level metrics, and where these state variables can be projected through time. FVS is the most connected engine in this network and therefore the first target for shared infrastructure, but the ecosystem is deliberately not organized to be anchored by any single model or repository. Other growth-and-yield engines — regional, species-specific, or next-generation, maintained by universities, agencies, or industry — belong here on the same terms.
 
 | Component | What it does | Maintainers | License |
 |---|---|---|---|
+| [`FMSC-Measurements/VolumeLibrary`](https://github.com/FMSC-Measurements/VolumeLibrary) | Official National Volume Estimator Library, in Fortran 77 |  less than 5 commits in past 12 months | Pending (Public Domain) |
 | [`USDAForestService/ForestVegetationSimulator`](https://github.com/USDAForestService/ForestVegetationSimulator) | Official FVS engine source; 22 US and 2 Canadian variants in Fortran 77 | Daniel Wagner | CC0 - Public Domain |
 | [`USDAForestService/ForestVegetationSimulator-Interface`](https://github.com/USDAForestService/ForestVegetationSimulator-Interface) | Official FVS interface bundle: `rFVS` bindings, the `fvsOL` Shiny application, keyword construction, post-run utilities | Daniel Wagner, Ben Rice, Michael Shettles | CC0 - Public Domain |
 | [`advanced-forestry-systems/fvs-modern`](https://github.com/advanced-forestry-systems/fvs-modern) | Community modernization of the FVS Fortran source, with associated calibration, validation, and build patterns | Aaron Weiskittel, Greg Johnson, David Marshall | MIT |
@@ -87,8 +80,8 @@ There are commonly-shared engineering and quality assessment needs for growth-an
 
 | Component | What it does | Maintainers | License |
 |---|---|---|---|
-| [`fvs-build`](https://github.com/Vibrant-Planet-Open-Science/fvs-build) | Reusable GitHub workflows producing native binaries for all major operating systems and container images | David Diaz | CC-BY-NC-SA  |
-| [`microfvs`](https://github.com/Vibrant-Planet-Open-Science/microfvs) | REST API for cloud-native model execution; consumes container images from `fvs-build` | David Diaz, Ben Smith | CC-BY-NC-SA |
+| [`fvs-build`](https://github.com/Vibrant-Planet-Open-Science/fvs-build) | Reusable GitHub workflows producing native binaries for all major operating systems and container images | David Diaz | MIT  |
+| [`microfvs`](https://github.com/Vibrant-Planet-Open-Science/microfvs) | REST API for cloud-native model execution; consumes container images from `fvs-build` | David Diaz, Ben Smith | MIT |
 | `engine-regression` | **Prospective.** Automated regression testing to detect changes in engine outputs so scientific continuity is enforceable during refactoring and development. Intended to ensure development in community forks can safely demonstrate parity with official upstream distributions. | — | — |
 | `engine-calibration` | **Prospective.** Worfklows that allow an engine's suite of parameters to be tuned via black box optimization or heuristic to seek better overall behavior at replicating target forest attributes and dynamics. Sensitivity of engine behavior parameter settings can also be characterized. | — | — |
 | `engine-validation` | **Prospective.** Execution of standardized validation protocols to characterize a model's predictive accuracy against FIA remeasurements, reference yield curves, and other reference datasets, producing comparable, release-quality reports using community-supported benchmarking datasets | — | — |
@@ -98,7 +91,8 @@ There are commonly-shared engineering and quality assessment needs for growth-an
 | Component | What it does | Maintainers | License |
 |---|---|---|---|
 | [`forest-modeling/PyFVS`](https://github.com/forest-modeling/PyFVS) | Python wrapper for an extended/modernized FVS Fortran API for a subset of US regions | Tod Haren | MIT |
-| [`Vibrant-Planet-Open-Science/fvs2py`](https://github.com/Vibrant-Planet-Open-Science/fvs2py) | Python bindings to the canonical FVS API | David Diaz | CC-BY-NC-SA |
+| [`forest-modeling/PyNVEL`](https://github.com/forest-modeling/PyNVEL) | Python wrapper for National Volume Estimator Library | Tod Haren | None |
+| [`Vibrant-Planet-Open-Science/fvs2py`](https://github.com/Vibrant-Planet-Open-Science/fvs2py) | Python bindings to the canonical FVS API | David Diaz | MIT |
 | [`rFVS`](https://github.com/USDAForestService/ForestVegetationSimulator-Interface) | R bindings to the FVS API, currently distributed inside the `USDAForestService/ForestVegetationSimulator-Interface` repository | Daniel Wagner, Ben Rice, Michael Shettles | CC0 - Public Domain |
 
 > [!NOTE]
@@ -106,18 +100,17 @@ There are commonly-shared engineering and quality assessment needs for growth-an
 
 ### Downstream consumers in this ecosystem
 
-Inclusion here is a descriptive sample — it is not a claim of participation nor obligation, and is not an exhaustive census. If you maintain one of these projects and would like it listed differently, or not at all, open an issue or contact us directly.
+Inclusion here is a descriptive sample of freely available or open source products — it is not a claim of participation nor obligation, and is not an exhaustive census. If you maintain one of these projects and would like it listed differently, or not at all, open an issue or contact us directly.
 
 | Component | What it does | Maintainers | License |
 |---|---|---|---|
-| [`FSim`](https://research.fs.usda.gov/firelab/projects/fsim) | Fire spread engine (C++) distributed in binary form | USDA Forest Service | Public domain, code not published |
-| [`ForSys`](https://www.forsysplanning.org) | Treatment prioritization | USDA Forest Service | Public domain, code not published | 
+| [`FSim`](https://research.fs.usda.gov/firelab/projects/fsim) | Fire spread engine (C++) distributed in binary form | USDA Forest Service | Public Domain, code not published |
+| [`ForSys`](https://www.forsysplanning.org) | Treatment prioritization | USDA Forest Service | Public Domain, code not published | 
 | [`forsys-sp/ForSysR`](https://github.com/forsys-sp/forsysr) | R implementation of ForSys | Cody Evers | GPL-3 |
 | [`OurPlanscape/Planscape`](https://github.com/OurPlanscape/Planscape) | Landscape planning | Spatial Informatics Group | CC0 - Public Domain |
-| [`Vibrant Planet Platform`](https://vibrantplanet.com/platform) | Landscape planning | Vibrant Planet, PBC | Proprietary, code not published |
 | [`Forest Analytics for Carbon Tracking`](https://www.usendowment.org/what-we-do/ecosystem-markets/forestry-analytics-for-carbon-tracking) | Carbon accounting and reporting toolkit | US Endowment for Forestry & Communities | pre-release, code not published |  
 
-In addition to these software systems that consume them, there is a much broader array of applications of growth-and-yield output data and projections in reports and planning documents spanning state and federal forest management plans, forest carbon project documentation, community wildfire protection plans, habitat conservation plans, timberland valuation and acquisition, sustainable harvest determinations, corporate and supply-chain GHG inventory and target-setting, forest product life cycle assessment, forest climate adaptation and vulnerability assessments, and more.
+In addition to these software systems that consume growth-and-yield outputs, there are several proprietary technologies not mapped here, and a much broader array of reports and planning documents spanning state and federal forest management plans, forest carbon project documentation, community wildfire protection plans, habitat conservation plans, timberland valuation and acquisition, sustainable harvest determinations, corporate and supply-chain GHG inventory and target-setting, forest product life cycle assessment, forest climate adaptation and vulnerability assessments, and more.
 
 ---
 
@@ -156,7 +149,7 @@ The proposing team is a starting point, not the governing body. Any organization
 
 ## License
 
-Code in this repository is licensed under the [MIT License](LICENSE). The documentation in [`docs/`](docs/) is dedicated to the public domain under [CC0 1.0](docs/LICENSE) — reusable by anyone, for any purpose, without attribution.
+Code in this repository is licensed under the [MIT License](LICENSE). The documentation in [`docs/`](docs/) is dedicated to the public domain under [CC0 1.0](docs/LICENSE).
 
 Licenses of the components mapped above belong to their own maintainers and are unaffected by this repository.
 
