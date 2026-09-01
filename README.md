@@ -154,6 +154,12 @@ The proposing team is a starting point, not the governing body. Any organization
 - **Use these tools and hit a broken handoff?** Tell us where. Documenting real failure points is more useful than novel feature requests. Post an issue here or start a discussion.
 - **Want to contribute code?** Start with the component repositories directly.
 
+## License
+
+Code in this repository is licensed under the [MIT License](LICENSE). The documentation in [`docs/`](docs/) is dedicated to the public domain under [CC0 1.0](docs/LICENSE) — reusable by anyone, for any purpose, without attribution.
+
+Licenses of the components mapped above belong to their own maintainers and are unaffected by this repository.
+
 ## About this page
 
 This map is maintained on a best-effort basis from public sources. Maintainer, license, and status entries reflect what each project publishes and may lag behind reality. Nothing here is a statement on behalf of any listed project or organization.
